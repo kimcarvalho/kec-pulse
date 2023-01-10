@@ -27,7 +27,7 @@
     </div>
     <div>
       <button @click="play" :class="{'bg-stop' : isPlay()}">{{botao}}</button>  
-      <TouchBody v-if="isPlay()" :play="isPlay()" @new-short="short" :shorted="compasso.value" :last="count"/>   
+      <TouchBody v-if="isPlay()" :play="isPlay()" @stop-clap="stopClap" @new-short="short" :shorted="compasso.value" :last="count"/>   
     </div>
   </div>
 </template>
@@ -66,7 +66,16 @@ export default {
     }
   },
 
-  methods:{ 
+  methods:{    
+    stopClap(){      
+      //this.compasso = [];
+      this.timer = null;
+      this.botao = 'Start';
+      this.count = 0;
+      this.isShort = true;
+      //this.start = false;
+      this.audio = null;
+    },
     isPlay(){
       return this.start;
     }, 
@@ -75,7 +84,7 @@ export default {
         this.audio.currentTime = 0;          
         this.audio.play();        
      },
-    play(){ 
+    play(){       
        this.short();  
        this.start = true;
        let music = document.getElementById('play1');
@@ -94,11 +103,16 @@ export default {
          this.setCount()
          }, 1000); //1 SEGUNDO = 1000 MILESEGUNDOS
          this.botao = 'STOP';        
-       }         
+       } 
+       
+       console.log('Timer', this.start);
      },
-     setCount(){    
-       this.playClap();          
-       this.count >= 4 ? this.count = 1 : this.count++;
+     setCount(){  
+      if(this.start){
+        this.playClap();          
+        this.count >= 4 ? this.count = 1 : this.count++;
+      }  
+       
        //console.log(this.count);
        
      },

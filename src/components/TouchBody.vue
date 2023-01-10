@@ -1,5 +1,5 @@
 <template>
-  <audio ref="audio" autoplay="autoplay" v-if="last >= 1">
+  <audio id="musica" ref="audio" autoplay="autoplay" v-if="last > 0">
     <source src="../audio/play1.wav" type="audio/mpeg">
   </audio>
   <div>
@@ -39,7 +39,8 @@ export default {
       hits: 0,
       errors:0,
       bpm: 60,
-      interval: 1000,      
+      interval: 1000,
+      audio: null,      
     } 
   },
   props: {
@@ -51,6 +52,16 @@ export default {
     checking(){      
       this.checkHitsErrors();
     },
+  },
+  watch:{
+    last(val){  
+      if(val > 0 && this.audio === null){
+        this.audio = document.getElementById('musica');
+      }else if(this.audio.paused){
+        this.audio.pause();     
+        this.$emit('stop-clap');
+      }   
+    }
   },
   methods:{
     pulse(){   
@@ -74,7 +85,7 @@ export default {
       if((this.jogada.length > 0 && this.last === 4)){
         if(this.value === 0 && this.pressed === 4 && this.press === null){                         
           if(this.shorted.toString() === this.jogada.toString()){
-            this.$emit('new-short') 
+            this.$emit('new-short'); 
             this.plusHits();  
             this.clear();   
           }else{
@@ -111,11 +122,11 @@ export default {
     setPressed(){
       this.pressed = this.last;
       console.log("Pressed "+ this.pressed);
-    }, 
-    monted(){
-        document.getElementById('polegar').focus();   
-    },   
+    },        
   },
+  mounted(){ 
+    this.audio = document.getElementById('musica');     
+  }
 }
 </script>
 

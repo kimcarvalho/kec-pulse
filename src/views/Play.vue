@@ -15,19 +15,19 @@
     <div>      
       <div id="pulse" class="counter" v-if="isPlay()">
         <div v-for="pulse in pulses" :key="pulse.value"  class="pulse" :class="{yellowbg : pulse.value == count}">
-          {{pulse.value}} 
+          {{pulse.value}} k
         </div>
       </div>
     </div>
     <div id="view" class="item-view" v-if="isPlay()">      
         <div v-for="(item, index) in compasso.value" :key="index" :class="{bg4: item == 4, bg2: item == 2, bg1: item == 1}" :style="getWidthImg(item)">
           <img :src="getImgUrl(item)" /><br>
-          <h1>{{item}}</h1>      
+          <h1>{{item}} k</h1>      
         </div>          
     </div>
     <div>
-      <button @click="play" :class="{'bg-stop' : isPlay()}">{{botao}}</button>  
-      <TouchBody v-if="isPlay()" :play="isPlay()" @stop-clap="stopClap" @new-short="short" :shorted="compasso.value" :last="count"/>   
+      <button tabindex="-1" @click="play" :class="{'bg-stop' : isPlay()}">{{botao}}</button>  
+      <TouchBody v-if="isPlay()" :play="isPlay()" @stop-clap="stopClap" @new-short="short" @restart="restart" :shorted="compasso.value" :last="count"/>   
     </div>
   </div>
 </template>
@@ -66,7 +66,12 @@ export default {
     }
   },
 
-  methods:{    
+  methods:{  
+    restart(){
+      this.compasso = [];
+      this.start = false;
+      this.$forceUpdate();
+    },  
     stopClap(){      
       //this.compasso = [];
       this.timer = null;
@@ -87,7 +92,7 @@ export default {
     play(){       
        this.short();  
        this.start = true;
-       let music = document.getElementById('play1');
+       //let music = document.getElementById('play1');
        if(this.timer !== null){
          //AQUI TEM ALGO RODANDO NO TIMER...
          clearInterval(this.timer);
@@ -105,7 +110,7 @@ export default {
          this.botao = 'STOP';        
        } 
        
-       console.log('Timer', this.start);
+       //console.log('Timer', this.start);
      },
      setCount(){  
       if(this.start){
@@ -128,13 +133,18 @@ export default {
        if(img == 4) return "width: 100%;"; 
        if(img == 2) return 'width: 50%; heigth: 100%';
        if(img == 1) return 'width: 25%;';
+     },
+     restart(){      
+      this.stopClap();
+      this.start = false;
+      this.compasso = [];
      }
   },
   mounted(){
     this.audio = document.querySelector('audio'); 
     if(this.isShort){
       this.short();
-      console.log('Sorteou');
+      //console.log('Sorteou');
     }     
   }
 };

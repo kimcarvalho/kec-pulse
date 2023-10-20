@@ -2,12 +2,14 @@
   <audio id="musica" ref="audio" autoplay="autoplay" v-if="last > 0">
     <source src="../audio/play1.wav" type="audio/mpeg">
   </audio>
+  <ModalFinal :errors="errors" :hits="hits" :show="show" @close-modal="setCloseModal('emit')" v-show="show" />
   <div>
     <div id="checking"><h1>{{value}}</h1>{{checking}}</div>
     <div style="width:100%;">      
-       <img :class="{'polegar-green' : press != null}" 
-      id="polegar" class="polegar" src="../assets/button.png" 
-      @mousedown="pulse" @keydown="pulse" @touch:start="pulse" @mouseup="stop" @keyup="stop" @keypress="setPressed"  @click="setPressed">  
+       <!-- <img tabindex="1" ref="polegar" :class="{'polegar-green' : press != null}" class="polegar" src="../assets/button.png" 
+      @mousedown="pulse" @mouseup="stop" @click="setPressed">   -->
+      <img tabindex="1" ref="polegar" :class="{'polegar-green' : press != null}" class="polegar" src="../assets/button.png" 
+      @mousedown="pulse" @mouseup="stop" @click="setPressed">  
     </div>    
     <!-- <button @mousedown="pulse" @touch:start="pulse" @mouseup="stop" @click="setPressed" > :::Press Here::: </button>     -->
   </div>   
@@ -27,9 +29,14 @@
 </template>
 
 <script>
-import Play from '../views/Play.vue'
+import Play from '../views/Play.vue';
+import ModalFinal from '../components/ModalFinal.vue';
+
 export default {
-  name: "TouchBody",   
+  name: "TouchBody",  
+  components:{
+    ModalFinal
+  },
   data(){ 
     return{
       value: 0,
@@ -40,7 +47,9 @@ export default {
       errors:0,
       bpm: 60,
       interval: 1000,
-      audio: null,      
+      audio: null,
+      tentativa: 0,
+      show: false,      
     } 
   },
   props: {
@@ -57,11 +66,15 @@ export default {
     last(val){  
       if(val > 0 && this.audio === null){
         this.audio = document.getElementById('musica');
-      }else if(this.audio.paused){
+      }else if((this.audio.paused && val > 0) || (this.tentativa >= 15)){
         this.audio.pause();     
-        this.$emit('stop-clap');
-      }   
-    }
+        this.$emit('stop-clap');  
+        this.audio.currentTime = 0;
+        this.audio = null;
+        this.setCloseModal("no-emit");        
+        console.log("\n\n\n Parouououououoououo .>>>>>");
+      }      
+    },
   },
   methods:{
     pulse(){   
@@ -77,22 +90,27 @@ export default {
       this.jogada.push(this.value);
       this.press = null;   
       this.value = 0;
+      this.play = false;
 
       if(this.last > 3) this.checkHitsErrors();
     },
     checkHitsErrors(){  
-      console.log("Pressed " + this.pressed, "Jogada: " + this.jogada);  
-      if((this.jogada.length > 0 && this.last === 4)){
-        if(this.value === 0 && this.pressed === 4 && this.press === null){                         
-          if(this.shorted.toString() === this.jogada.toString()){
-            this.$emit('new-short'); 
-            this.plusHits();  
-            this.clear();   
-          }else{
-            this.plusErrors();
-            this.clear();               
-          }         
-        }       
+      //console.log("Pressed " + this.pressed, "Jogada: " + this.jogada);  
+      if(this.last === 4){
+        if(this.jogada.length > 0 ){
+          if(this.value === 0 && this.pressed === 4 && this.press === null){                         
+            if(this.shorted.toString() === this.jogada.toString()){
+              this.$emit('new-short'); 
+              this.plusHits();  
+              this.clear();   
+            }else{
+              this.plusErrors();
+              this.clear();               
+            } 
+            this.tentativa++;        
+          } 
+        }
+               
       }
 
       if(this.value > 4){
@@ -121,10 +139,20 @@ export default {
     },  
     setPressed(){
       this.pressed = this.last;
-      console.log("Pressed "+ this.pressed);
-    },        
+      //console.log("Pressed "+ this.pressed);
+    },  
+    setCloseModal(act){
+      this.show = !this.show ;
+
+      if(act === 'emit'){        
+        this.clear();   
+        this.$emit('restart'); 
+        this.$router.go();
+      }      
+    }      
   },
   mounted(){ 
+    this.$refs.polegar.focus();
     this.audio = document.getElementById('musica');     
   }
 }
